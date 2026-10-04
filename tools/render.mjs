@@ -28,6 +28,10 @@ page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') co
 page.on('pageerror', e => { console.error('[pageerror]', e.message); process.exit(1); });
 await page.goto(`http://localhost:${port}/index.html`);
 await page.waitForFunction(() => window.sceneReady === true, null, { timeout: 120000 });
+if (args.includes('--flags')) {
+  const f = args[args.indexOf('--flags') + 1].split(',');
+  await page.evaluate((f) => { for (const k of f) window[k] = true; }, f);
+}
 if (args.includes('--cam')) {
   const c = JSON.parse(args[args.indexOf('--cam') + 1]);
   await page.evaluate((c) => { window.debugCam = c; }, c);

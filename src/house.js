@@ -2,6 +2,8 @@
 import * as THREE from 'three';
 import { M, mesh, box, sphere, capsule, cyl, rbox, torus, sweep, lathe, wobble } from './geo.js';
 import * as TX from './textures.js';
+import { stuccoNormal, woodMaps } from './materials.js';
+function wall(map, color = '#ffffff') { return new THREE.MeshPhysicalMaterial({ color, map, normalMap: stuccoNormal(), normalScale: new THREE.Vector2(0.55, 0.55), roughness: 0.96, sheen: 0.15 }); }
 
 export const Y1 = 2.52;     // nivel del piso de arriba
 export const TOP = 4.82;    // remate de muros
@@ -21,19 +23,20 @@ export function buildHouse(scene) {
   house.add(H.front);
 
   // ---------- materiales
-  const ext = M('#efe2cf', { map: TX.plain('#efe2cf', 10, 2), rough: 0.95 });
+  const ext = wall(TX.plain('#efe2cf', 10, 2));
   const cap = M('#f6ece0', { rough: 0.95 });
-  const pLiving = M('#ffffff', { map: TX.wallpaperStripes('#efe1c9', '#e5d2b4'), rough: 0.95 });
+  const pLiving = wall(TX.wallpaperStripes('#efe1c9', '#e5d2b4'));
   pLiving.map.repeat.set(1 / 0.7, 1 / 0.7);
-  const pBed = M('#ffffff', { map: TX.wallpaperStars('#9fbdd6', '#f6e7b5'), rough: 0.95 });
+  const pBed = wall(TX.wallpaperStars('#9fbdd6', '#f6e7b5'));
   pBed.map.repeat.set(1 / 0.75, 1 / 0.75);
-  const pHall = M('#ffffff', { map: TX.wallpaperStripes('#b7c4a6', '#aab994'), rough: 0.95 });
+  const pHall = wall(TX.wallpaperStripes('#b7c4a6', '#aab994'));
   pHall.map.repeat.set(1 / 0.7, 1 / 0.7);
-  const wood = M('#ffffff', { map: TX.woodFloor('#b07a4f'), rough: 0.8 });
+  const wn = woodMaps('#888', { seed: 41 }).normalMap; wn.repeat.set(1.5, 6);
+  const wood = new THREE.MeshPhysicalMaterial({ map: TX.woodFloor('#a8724a'), normalMap: wn, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 0.55, clearcoat: 0.25, clearcoatRoughness: 0.4 });
   wood.map.repeat.set(0.5, 0.5);
   const woodLight = M('#ffffff', { map: TX.woodFloor('#c99a6a'), rough: 0.8 });
   woodLight.map.repeat.set(0.5, 0.5);
-  const plaster = M('#f3ebe0', { rough: 1 });
+  const plaster = wall(null, '#f3ebe0');
   const trim = M('#f8f3ea', { rough: 0.8 });
   const snow = M('#eef1f7', { map: TX.plain('#eef1f7', 14, 3), rough: 1 });
 
@@ -114,7 +117,7 @@ export function buildHouse(scene) {
 
   // ---------- ventanas con "paisaje nocturno" de cartón detrás
   const skyTex = TX.nightSky();
-  const skyMat = new THREE.MeshBasicMaterial({ map: skyTex, color: '#b9c3e6' });
+  const skyMat = new THREE.MeshBasicMaterial({ map: skyTex, color: '#8d96b6' });
   const windowFrame = (parent, cx, cy, cz, w, h, axis, outward) => {
     // axis: 'z' => ventana en muro z=cte; 'x' => muro x=cte; outward = signo hacia afuera
     const g = new THREE.Group();

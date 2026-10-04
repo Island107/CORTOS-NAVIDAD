@@ -6,6 +6,9 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { buildHouse, Y1, TOP, CEIL, STAIR, stairFloorY, addGlow } from './house.js';
 import { buildBedroom, buildLiving, blob, starShape } from './props.js';
 import { makeSanta, makeDog, makeKid, makePovArm } from './characters.js';
@@ -27,6 +30,13 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
+// luz rebotada suave de estudio (IBL)
+{
+  const pm = new THREE.PMREMGenerator(renderer);
+  scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.environmentIntensity = 0.12;
+  scene.environmentRotation = new THREE.Euler(0, 0.6, 0);
+}
 const camera = new THREE.PerspectiveCamera(62, W / H, 0.03, 300);
 scene.add(camera);
 
@@ -52,7 +62,7 @@ scene.add(studioFloor);
 scene.fog = new THREE.Fog('#857b98', 34, 120);
 
 // ------------------------------------------------------------------ luces
-const hemi = new THREE.HemisphereLight('#c7c3ea', '#4f4250', 0.6);
+const hemi = new THREE.HemisphereLight('#d9cfe6', '#8a6450', 0.6);
 scene.add(hemi);
 const key = new THREE.DirectionalLight('#dfe2ff', 1.2);
 key.position.set(-7, 14, 10);
@@ -63,7 +73,8 @@ key.shadow.mapSize.set(2048, 2048);
 Object.assign(key.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8, near: 1, far: 45 });
 key.shadow.bias = -0.0004;
 key.shadow.normalBias = 0.02;
-key.shadow.radius = 3;
+key.shadow.radius = 10;
+key.shadow.blurSamples = 16;
 
 const moon = new THREE.SpotLight('#9fb4ff', 0, 14, 0.42, 0.7, 1.2);
 moon.position.set(0.7, Y1 + 3.2, -6.5);
@@ -71,6 +82,8 @@ moon.target.position.set(1.6, Y1, 0.9);
 moon.castShadow = true;
 moon.shadow.mapSize.set(1024, 1024);
 moon.shadow.bias = -0.0005;
+moon.shadow.radius = 6;
+moon.shadow.blurSamples = 12;
 scene.add(moon, moon.target);
 
 // ------------------------------------------------------------------ casa y utilería
@@ -121,7 +134,8 @@ lampLight.position.copy(BR.lampWorld).add(new THREE.Vector3(-0.05, -0.05, 0.05))
 lampLight.castShadow = true;
 lampLight.shadow.mapSize.set(512, 512);
 lampLight.shadow.bias = -0.002;
-lampLight.shadow.radius = 4;
+lampLight.shadow.radius = 8;
+lampLight.shadow.blurSamples = 12;
 scene.add(lampLight);
 const bedFill = new THREE.PointLight('#ffcf9a', 0, 8, 2);
 bedFill.position.set(0, Y1 + 2.0, 0.2);
@@ -129,6 +143,8 @@ scene.add(bedFill);
 LV.floorLight.castShadow = true;
 LV.floorLight.shadow.mapSize.set(512, 512);
 LV.floorLight.shadow.bias = -0.002;
+LV.floorLight.shadow.radius = 10;
+LV.floorLight.shadow.blurSamples = 12;
 const livingFill = new THREE.PointLight('#ffd2a0', 0.0, 9, 2);
 livingFill.position.set(-0.6, 1.2, 1.2);
 scene.add(livingFill);
@@ -233,12 +249,54 @@ const snow = new THREE.Points(snowGeo, snowMat);
 snow.frustumCulled = false;
 scene.add(snow);
 
+// normales degeneradas (puntas de tornos) → evita NaN en el sombreado
+{
+  const seen = new Set();
+  scene.traverse(o => {
+    if (!o.isMesh || seen.has(o.geometry)) return;
+    seen.add(o.geometry);
+    const n = o.geometry.attributes.normal; if (!n) return;
+    for (let i = 0; i < n.count; i++) {
+      const x = n.getX(i), y = n.getY(i), z = n.getZ(i), l = Math.hypot(x, y, z);
+      if (!(l > 1e-5)) n.setXYZ(i, 0, 1, 0); else if (Math.abs(l - 1) > 1e-3) n.setXYZ(i, x / l, y / l, z / l);
+    }
+    n.needsUpdate = true;
+  });
+}
 // ------------------------------------------------------------------ post-proceso
 const rt = new THREE.WebGLRenderTarget(W, H, { type: THREE.HalfFloatType, samples: 4 });
 const composer = new EffectComposer(renderer, rt);
 composer.setPixelRatio(1);
 composer.setSize(W, H);
 composer.addPass(new RenderPass(scene, camera));
+const sanitize = new ShaderPass({
+  uniforms: { tDiffuse: { value: null } },
+  vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
+  fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
+    void main(){ vec4 c = texture2D(tDiffuse, vUv);
+      if (!(c.r == c.r) || !(c.g == c.g) || !(c.b == c.b)) c = vec4(0.0, 0.0, 0.0, 1.0);
+      gl_FragColor = vec4(min(c.rgb, vec3(40.0)), c.a); }`,
+});
+const gtao = new GTAOPass(scene, camera, W, H);
+gtao.output = GTAOPass.OUTPUT.Default;
+gtao.blendIntensity = 0.85;
+gtao.updateGtaoMaterial({ radius: 0.45, distanceExponent: 1.4, thickness: 1.5, scale: 1.0, samples: 12, screenSpaceRadius: false });
+gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 12 });
+{
+  const orig = gtao.render.bind(gtao);
+  const hidden = [];
+  gtao.render = (...a) => {
+    scene.traverseVisible(o => { if (o.isSprite || o.isPoints || (o.material && o.material.transparent)) hidden.push(o); });
+    hidden.forEach(o => (o.visible = false));
+    orig(...a);
+    hidden.forEach(o => (o.visible = true));
+    hidden.length = 0;
+  };
+}
+composer.addPass(gtao);
+composer.addPass(sanitize);
+const bokeh = new BokehPass(scene, camera, { focus: 4.5, aperture: 0.0035, maxblur: 0.006 });
+composer.addPass(bokeh);
 const bloom = new UnrealBloomPass(new THREE.Vector2(W / 2, H / 2), 0.5, 0.55, 1.15);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
@@ -305,8 +363,8 @@ const camKeys = [
   { t: 12.0, p: [-3.38, 1.0, 1.82], l: [-3.3, 0.95, 4.2], r: 0.0, stairs: true },
   { t: 12.6, p: [-3.12, 1.0, 2.25], l: [0.0, 1.0, 2.3], r: 0.0 },
   { t: 13.35, p: [-2.8, 0.97, 2.3], l: [1.0, 0.85, 0.75], r: 0.07 },
-  { t: 14.2, p: [-2.7, 0.97, 2.02], l: [1.45, 0.72, -0.5], r: 0.025 },
-  { t: 17.6, p: [-2.66, 0.98, 1.98], l: [1.3, 0.72, -0.55], r: 0.0 },
+  { t: 14.2, p: [-2.05, 0.97, 1.62], l: [1.45, 0.8, -0.6], r: 0.02 },
+  { t: 17.6, p: [-2.0, 0.98, 1.58], l: [1.3, 0.8, -0.65], r: 0.0 },
   { t: 20.1, p: [-2.25, 1.0, 1.7], l: [-0.15, 0.85, -1.4], r: 0.0 },
   { t: 22.5, p: [-1.4, 1.0, 0.72], l: [-0.3, 0.72, -1.95], r: 0.0 },
   { t: 25.05, p: [-1.22, 0.98, 0.5], l: [-0.3, 0.74, -1.95], r: 0.0, hold: true },
@@ -317,7 +375,7 @@ const camKeys = [
 const camP = track(camKeys.map(k => ({ t: k.t, v: k.p, hold: k.hold })));
 const camL = track(camKeys.map(k => ({ t: k.t, v: k.l, hold: k.hold })));
 const camR = track(camKeys.map(k => ({ t: k.t, v: k.r, hold: k.hold })));
-const camFov = track([{ t: 0, v: 58 }, { t: 25.1, v: 58 }, { t: 28.4, v: 43 }, { t: 30, v: 42 }]);
+const camFov = track([{ t: 0, v: 58 }, { t: 13.3, v: 58 }, { t: 14.2, v: 50 }, { t: 25.1, v: 52 }, { t: 28.4, v: 43 }, { t: 30, v: 42 }]);
 
 // ------------------------------------------------------------------ helpers de animación
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -570,9 +628,9 @@ function setSack(t) {
   sack.visible = t < 21.6;
   if (t < 17.75) {
     // en el piso, casi vacío y desparramado
-    sack.position.set(0.82, 0.24, -0.28);
-    sack.rotation.set(0.15, 0.6, 0.3);
-    sack.scale.set(1.25, 0.8, 1.1);
+    sack.position.set(0.8, 0.13, -0.3);
+    sack.rotation.set(0.1, 0.6, 0.18);
+    sack.scale.set(1.1, 0.75, 0.95);
     if (t > 17.6) {
       const hand = new THREE.Vector3(); s.arms.R.hand.getWorldPosition(hand);
       const k = smooth(17.6, 17.75, t);
@@ -747,7 +805,7 @@ function setLights(t) {
   // luz de estudio: noche fría y suave; en el final, más presente para leer el diorama
   key.intensity = lerp(0.35, 1.25, finale);
   key.color.set('#c9d2ff');
-  hemi.intensity = lerp(0.55, 0.8, finale);
+  hemi.intensity = lerp(0.4, 0.8, finale);
   moon.intensity = inBed ? 22 * (1 - lampOn * 0.35) : 0;
   moon.visible = inBed || finale > 0;
   if (finale > 0) moon.intensity = 10 * finale;
@@ -765,14 +823,14 @@ function setLights(t) {
   LV.floorLight.castShadow = inLiving && t < 25.4;
   LV.floorLight.intensity = 2.2;
   LV.tree.light1.visible = LV.tree.light2.visible = inLiving;
-  LV.tree.light1.intensity = 3.4 * (0.93 + 0.07 * Math.sin(t * 3.1));
-  LV.tree.light2.intensity = 1.3;
+  LV.tree.light1.intensity = 0.7 * (0.93 + 0.07 * Math.sin(t * 3.1));
+  LV.tree.light2.intensity = 0.0;
   LV.fireLight.visible = inLiving;
-  livingFill.intensity = inLiving ? 1.2 : 0;
+  livingFill.intensity = inLiving ? 0.7 : 0;
   livingFill.visible = inLiving;
   // estudio y niebla
   skyU.top.value.set('#262a47');
-  renderer.toneMappingExposure = lerp(1.12, 1.1, finale);
+  renderer.toneMappingExposure = lerp(1.0, 1.1, finale);
 }
 
 function setFront(t) {
@@ -876,9 +934,17 @@ function update(t) {
   u.textA.value = smooth(27.7, 28.6, t);
   u.fade.value = smooth(29.55, 30.0, t);
   u.vig.value = 1;
+  // foco: Santa mientras está en escena, si no, el punto al que mira la cámara
+  const fp = new THREE.Vector3();
+  if (santa.root.visible) santa.head.getWorldPosition(fp); else fp.set(...camL(t));
+  if (t > 22.3 && t < 25.3) fp.set(FIRE_X, 0.75, -1.95);
+  if (t > 25.3) fp.set(-0.6, 2.0, 0);
+  bokeh.uniforms.focus.value = camera.position.distanceTo(fp);
+  bokeh.uniforms.aperture.value = t > 25.3 ? 0.0012 : 0.005;
 }
 
 window.renderFrame = (t) => {
+  bloom.enabled = !window.noBloom; gtao.enabled = !window.noAO; bokeh.enabled = !window.noDof;
   update(t);
   if (window.debugCam) {
     const d = window.debugCam;

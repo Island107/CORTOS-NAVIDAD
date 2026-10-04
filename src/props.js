@@ -2,6 +2,15 @@
 import * as THREE from 'three';
 import { M, mesh, box, sphere, capsule, cyl, rbox, torus, sweep, lathe, wobble } from './geo.js';
 import * as TX from './textures.js';
+import { fabric, addFur, woodMaps, stuccoNormal, paperNormal, weaveMaps } from './materials.js';
+function woodMat(color, rep = [1, 1], seed = 31) {
+  const w = woodMaps(color, { seed });
+  w.map.repeat.set(...rep); w.normalMap.repeat.set(...rep);
+  return new THREE.MeshPhysicalMaterial({ color: '#ffffff', map: w.map, normalMap: w.normalMap, normalScale: new THREE.Vector2(0.6, 0.6), roughness: 0.6, clearcoat: 0.2, clearcoatRoughness: 0.45, specularIntensity: 0.4 });
+}
+function pileRug(mesh, map) {
+  addFur(mesh, { useUv: true, len: 0.014, density: 5, shells: 10, map, color: '#9a948c', tip: '#ffffff', clump: 0.3, gravity: 0, seed: 21, ao: 0.6 });
+}
 import { Y1, CEIL, addGlow, addGarland, picture, wreath } from './house.js';
 
 function G(parent, pos = [0, 0, 0], rotY = 0) {
@@ -205,11 +214,13 @@ export function starShape(R) {
 export function buildLiving(parent, H) {
   const L = { flames: [], embers: [] };
   // tapete
-  const rug = new THREE.Mesh(new THREE.CircleGeometry(1.05, 64), M('#ffffff', { map: TX.rugRound('#c9897a', '#efe4d2', '#9fb3a2'), rough: 1 }));
+  const rugMap = TX.rugRound('#b9705f', '#eadcc6', '#7f9c8a');
+  const rug = new THREE.Mesh(new THREE.CircleGeometry(1.05, 64), new THREE.MeshPhysicalMaterial({ map: rugMap, color: '#8f8a84', roughness: 1 }));
   rug.rotation.x = -Math.PI / 2; rug.position.set(0.25, 0.006, 0.25); rug.receiveShadow = true; parent.add(rug);
+  pileRug(rug, rugMap);
 
   // ---------- chimenea (pecho de ladrillo al centro del muro trasero)
-  const brickM = M('#ffffff', { map: TX.brick('#d8c3ad', '#efe5d8'), rough: 0.95 });
+  const brickM = new THREE.MeshPhysicalMaterial({ map: TX.brick('#d8c3ad', '#efe5d8'), normalMap: stuccoNormal(), normalScale: new THREE.Vector2(1.2, 1.2), roughness: 0.97 });
   brickM.map.repeat.set(1 / 0.6, 1 / 0.6);
   const soot = M('#2b2220', { rough: 1 });
   const xa = -1.0, xb = 0.4, oa = -0.775, ob = 0.175, zf = -1.8, zb = -2.44, oh = 0.92;
@@ -224,7 +235,7 @@ export function buildLiving(parent, H) {
   box(parent, ob - 0.02, ob, 0, 1.6, zb, -1.95, soot, 1);
   // arco interior suave
   // repisa
-  const mantelM = M('#7c4a2b', { rough: 0.6 });
+  const mantelM = woodMat('#7a4a2a', [1, 0.3], 33);
   mesh(rbox(1.62, 0.08, 0.3, 0.02), mantelM, parent, [-0.3, 1.0, -1.72]);
   mesh(rbox(1.5, 0.05, 0.36, 0.015), M('#cdb79f'), parent, [-0.3, 0.025, -1.62]);
   // piedra del hogar al frente
@@ -249,7 +260,7 @@ export function buildLiving(parent, H) {
   wreath(parent, -0.3, 1.75, -1.79, 0.2, 1);
 
   // leños + fuego
-  const logM = M('#6b4429', { rough: 1 });
+  const logM = woodMat('#5d3a22', [0.5, 1], 35); logM.clearcoat = 0; logM.roughness = 0.95;
   mesh(cyl(0.06, 0.07, 0.62, 14), logM, parent, [-0.3, 0.12, -2.15], [0, 0.2, Math.PI / 2]);
   mesh(cyl(0.055, 0.06, 0.55, 14), logM, parent, [-0.32, 0.12, -2.0], [0, -0.25, Math.PI / 2]);
   mesh(cyl(0.05, 0.055, 0.5, 14), logM, parent, [-0.28, 0.22, -2.08], [0, 0.05, Math.PI / 2]);
@@ -291,23 +302,23 @@ export function buildLiving(parent, H) {
 
   // ---------- sofá contra el muro derecho (mira hacia -x)
   const sofa = G(parent, [2.06, 0, 0.5], -Math.PI / 2);
-  const sofaM = M('#ffffff', { map: TX.plain('#6f9693', 14, 15), rough: 1 });
+  const sofaM = fabric('#577f7b', 'weave', { repeat: [5, 5], n: 44, strength: 2.2, ns: 1.2, sheen: 1.0 });
   mesh(rbox(1.9, 0.3, 0.82, 0.08), sofaM, sofa, [0, 0.22, 0]);
   mesh(rbox(1.9, 0.5, 0.22, 0.09), sofaM, sofa, [0, 0.6, -0.32]);
   for (const s of [-1, 1]) mesh(rbox(0.2, 0.58, 0.82, 0.09), sofaM, sofa, [s * 0.95, 0.33, 0]);
   for (const s of [-1, 1]) mesh(rbox(0.86, 0.14, 0.62, 0.06), sofaM, sofa, [s * 0.44, 0.43, 0.08]);
   for (const s of [-1, 1]) for (const zz of [-0.32, 0.32]) mesh(cyl(0.03, 0.02, 0.07, 10), M('#6b4429'), sofa, [s * 0.86, 0.035, zz]);
-  const pl = M('#ffffff', { map: TX.plaid('#b8322f', '#24453a'), rough: 1 });
+  const pl = fabric('#ffffff', 'weave', { repeat: [3, 3], n: 40 }); pl.map = TX.plaid('#a82c2a', '#24453a'); pl.map.repeat.set(1, 1);
   mesh(rbox(0.36, 0.34, 0.12, 0.06), pl, sofa, [0.68, 0.66, -0.16], [-0.2, 0.2, -0.15]);
-  mesh(rbox(0.32, 0.3, 0.11, 0.06), M('#f2c46d'), sofa, [0.36, 0.64, -0.18], [-0.2, -0.1, 0.1]);
+  mesh(rbox(0.32, 0.3, 0.11, 0.06), fabric('#e0ae4f', 'knit', { repeat: [2, 2] }), sofa, [0.36, 0.64, -0.18], [-0.2, -0.1, 0.1]);
   // mantita doblada
-  mesh(rbox(0.5, 0.06, 0.4, 0.03), M('#ffffff', { map: TX.knit('#e9dccb') }), sofa, [0.82, 0.68, 0.0], [0, 0.2, 0]);
+  mesh(rbox(0.5, 0.06, 0.4, 0.03), fabric('#e3d6c3', 'knit', { repeat: [3, 2], ns: 1.4 }), sofa, [0.82, 0.68, 0.0], [0, 0.2, 0]);
   blob(parent, 2.06, 0, 0.5, 1.2, 2.3, 0.35);
 
   // mesita con galletas y leche (al lado izquierdo de la chimenea)
   const st = G(parent, [-1.7, 0, -1.55]);
-  mesh(cyl(0.25, 0.25, 0.04, 32), M('#7c4a2b', { rough: 0.6 }), st, [0, 0.52, 0]);
-  mesh(cyl(0.04, 0.05, 0.5, 16), M('#7c4a2b'), st, [0, 0.25, 0]);
+  mesh(cyl(0.25, 0.25, 0.04, 32), woodMat('#7a4a2a', [1, 1], 37), st, [0, 0.52, 0]);
+  mesh(cyl(0.04, 0.05, 0.5, 16), woodMat('#7a4a2a', [1, 2], 38), st, [0, 0.25, 0]);
   mesh(cyl(0.16, 0.16, 0.02, 24), M('#ffffff', { rough: 0.15 + 0.4 }), st, [0, 0.55, 0], [0, 0, 0], 1, true);
   mesh(cyl(0.045, 0.045, 0.012, 16), M('#c08b4c'), st, [0.04, 0.567, 0.02]);
   mesh(cyl(0.04, 0.045, 0.012, 16, 1, false), M('#c08b4c'), st, [-0.05, 0.567, -0.03], [0, 0, 0], [1, 1, 0.55]);
@@ -343,7 +354,7 @@ export function buildLiving(parent, H) {
 
 function stocking(parent, pos, color) {
   const g = G(parent, pos);
-  const m = M(color, { map: TX.knit(color) });
+  const m = fabric(color, 'knit', { repeat: [3, 2], ns: 1.3 });
   mesh(sweep([[0, 0, 0], [0, -0.16, 0], [0, -0.27, 0.02], [0, -0.32, 0.1], [0, -0.32, 0.15]], (u) => 0.06 + 0.012 * Math.sin(u * 3), 24, 16, true, () => 0.75), m, g, [0, -0.1, 0]);
   mesh(cyl(0.068, 0.068, 0.1, 20), M('#f6f1ea', { map: TX.plain('#f6f1ea', 22, 4) }), g, [0, -0.06, 0], [0, 0, 0], [1, 1, 0.78]);
   return g;
@@ -351,7 +362,7 @@ function stocking(parent, pos, color) {
 
 export function gift(parent, pos, w, h, d, color, ribbon, rotY) {
   const g = G(parent, pos, rotY);
-  const paper = M(color, { map: TX.plain(color, 12, 3 + w * 10), rough: 0.9 });
+  const paper = new THREE.MeshPhysicalMaterial({ color, map: TX.plain('#ffffff', 10, 3 + w * 10), normalMap: paperNormal(), normalScale: new THREE.Vector2(0.5, 0.5), roughness: 0.8, sheen: 0.2 });
   const rb = M(ribbon, { rough: 0.6 });
   mesh(rbox(w, h, d, 0.015), paper, g, [0, h / 2, 0]);
   mesh(new THREE.BoxGeometry(w * 0.16, h + 0.004, d + 0.004), rb, g, [0, h / 2, 0]);
@@ -372,7 +383,7 @@ export function buildTree(parent, pos, H) {
   mesh(lathe([[0, 0], [0.26, 0], [0.31, 0.26], [0.33, 0.3], [0, 0.3]], 32), M('#ffffff', { map: TX.burlap(), rough: 1 }), g);
   mesh(torus(0.32, 0.03, 8, 32), M('#c0392b'), g, [0, 0.27, 0], [Math.PI / 2, 0, 0]);
   mesh(cyl(0.06, 0.07, 0.3, 12), M('#6b4429'), g, [0, 0.4, 0]);
-  const green = M('#2f6a4c', { map: TX.plain('#2f6a4c', 22, 19), rough: 1 });
+  const green = new THREE.MeshPhysicalMaterial({ color: '#1f4a35', roughness: 1 });
   const tiers = [[0.84, 0.4, 0.7], [0.68, 0.78, 0.6], [0.52, 1.12, 0.52], [0.37, 1.45, 0.44], [0.22, 1.74, 0.36]];
   const coneR = (y) => {
     // radio de la silueta para colocar adornos
@@ -394,15 +405,49 @@ export function buildTree(parent, pos, H) {
       p.setXYZ(i, x * (1 + 0.035 * wave * k), y + wave * 0.025 * k * k, z * (1 + 0.035 * wave * k));
     }
     geo.computeVertexNormals();
-    mesh(geo, green, g, [0, y0, 0]);
+    mesh(geo, green, g, [0, y0 - 0.02, 0], [0, 0, 0], [0.93, 1, 0.93]);
+  }
+  // agujas: miles de ramitas instanciadas sobre cada gajo
+  {
+    const ng = new THREE.ConeGeometry(0.011, 0.09, 4, 1);
+    ng.translate(0, 0.045, 0);
+    const nm = new THREE.MeshPhysicalMaterial({ color: '#ffffff', roughness: 0.85, sheen: 0.4, sheenColor: new THREE.Color('#9fd0a0') });
+    const total = 15000;
+    const inst = new THREE.InstancedMesh(ng, nm, total);
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
+    const col = new THREE.Color();
+    const area = tiers.map(([R, y0, h]) => R * Math.hypot(R, h));
+    const sumA = area.reduce((a, b) => a + b, 0);
+    let k = 0;
+    tiers.forEach(([R, y0, h], ti) => {
+      const n = Math.round(total * area[ti] / sumA);
+      for (let i = 0; i < n && k < total; i++, k++) {
+        const f = 1 - Math.sqrt(r());           // más agujas abajo (más área)
+        const a = r() * Math.PI * 2;
+        const rr = R * (1 - f) * (0.9 + r() * 0.1);
+        const p = new THREE.Vector3(Math.cos(a) * rr, y0 + f * h, Math.sin(a) * rr);
+        const d = new THREE.Vector3(Math.cos(a), -0.25 - (1 - f) * 0.5 + (r() - 0.5) * 0.5, Math.sin(a));
+        d.x += (r() - 0.5) * 0.6; d.z += (r() - 0.5) * 0.6;
+        d.normalize();
+        q.setFromUnitVectors(up, d);
+        const sc = 0.7 + r() * 0.6;
+        m4.compose(p, q, new THREE.Vector3(sc, sc * (0.8 + (1 - f) * 0.5), sc));
+        inst.setMatrixAt(k, m4);
+        col.setHSL(0.39 + (r() - 0.5) * 0.05, 0.38 + r() * 0.15, 0.09 + r() * 0.09 + f * 0.05);
+        inst.setColorAt(k, col);
+      }
+    });
+    inst.count = k;
+    inst.castShadow = true; inst.receiveShadow = true;
+    g.add(inst);
   }
   // esfera-adornos
   const ornCols = ['#c0392b', '#d8a842', '#f4efe4', '#5d84b8', '#e9a6a0', '#c0392b'];
   for (let i = 0; i < 34; i++) {
     const y = 0.45 + r() * 1.55;
     const a = r() * Math.PI * 2;
-    const rr = coneR(y) * 0.92;
-    if (rr < 0.08) continue;
+    const rr = coneR(y) * 1.0 + 0.08;
+    if (rr < 0.12) continue;
     const c = ornCols[i % ornCols.length];
     mesh(sphere(0.042, 16, 12), M(c, { rough: c === '#d8a842' ? 0.35 : 0.55, metal: c === '#d8a842' ? 0.4 : 0 }), g, [Math.cos(a) * rr, y - 0.03, Math.sin(a) * rr]);
   }
@@ -412,16 +457,16 @@ export function buildTree(parent, pos, H) {
     const u = i / 160;
     const y = 0.42 + u * 1.65;
     const a = u * Math.PI * 2 * 4.2 + 1;
-    const rr = coneR(y) * 0.98 + 0.01;
+    const rr = coneR(y) * 1.0 + 0.085;
     beads.push([Math.cos(a) * rr, y, Math.sin(a) * rr]);
   }
-  mesh(sweep(beads, () => 0.011, 300, 6, false), M('#e2be6a', { rough: 0.4, metal: 0.3 }), g);
+  mesh(sweep(beads, () => 0.007, 300, 6, false), M('#e2be6a', { rough: 0.4, metal: 0.3 }), g);
   // foquitos
   for (let i = 0; i < 46; i++) {
     const u = (i + 0.5) / 46;
     const y = 0.42 + u * 1.6;
     const a = u * Math.PI * 2 * 5.3 + 2.4;
-    const rr = coneR(y) * 0.97 + 0.02;
+    const rr = coneR(y) * 1.0 + 0.1;
     const col = ['#ffcf7a', '#ffe3a3', '#ff9a6b', '#ffcf7a', '#a9d4ff'][i % 5];
     const p = [Math.cos(a) * rr, y, Math.sin(a) * rr];
     const b = mesh(sphere(0.018, 10, 8), new THREE.MeshBasicMaterial({ color: col }), g, p, [0, 0, 0], 1, false);
@@ -434,11 +479,11 @@ export function buildTree(parent, pos, H) {
   T.star = mesh(star, M('#f2c94c', { emissive: '#f2b632', ei: 0.65, rough: 0.4 }), g, [0, 2.17, 0]);
   T.starGlow = addGlow(g, [0, 2.17, 0.03], 0.9, '#ffd77a', 0.7);
   // luz cálida del árbol (dos puntos para que no se vea plano)
-  T.light1 = new THREE.PointLight('#ffb870', 2.5, 6, 1.6);
-  T.light1.position.set(pos[0] + 0.05, 1.0, pos[2] - 0.05);
+  T.light1 = new THREE.PointLight('#ffb870', 0.6, 1.4, 2);
+  T.light1.position.set(pos[0], 1.1, pos[2]);
   parent.add(T.light1);
   T.light2 = new THREE.PointLight('#ffc98a', 1.2, 3.5, 2);
-  T.light2.position.set(pos[0] - 0.25, 1.65, pos[2] + 0.25);
+  T.light2.position.set(pos[0] - 0.6, 0.6, pos[2] + 1.0);
   parent.add(T.light2);
   return T;
 }
