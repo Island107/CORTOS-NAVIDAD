@@ -9,6 +9,7 @@ import { S2Stairs } from "./scenes/S2Stairs";
 import { livingCam, S34Living, santaHeadWorld } from "./scenes/S34Living";
 import { Bubble, Sparkles } from "./scenes/Fx";
 import { S5Diorama } from "./scenes/S5Diorama";
+import { DBG } from "./lib/dbg";
 
 loadFont({ family: "Fredoka", url: staticFile("fonts/fredoka-latin-700-normal.woff2"), weight: "700" });
 loadFont({ family: "Fredoka", url: staticFile("fonts/fredoka-latin-600-normal.woff2"), weight: "600" });
@@ -19,6 +20,7 @@ export const Main: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const t = frame / fps;
+  if (DBG.has("empty")) return <AbsoluteFill style={{ background: `rgb(${frame % 255},40,40)` }} />;
   const head = santaHeadWorld(Math.min(t, 24.3));
   const hp = project(livingCam(t), head.x, head.y, head.z);
   return (
@@ -41,6 +43,7 @@ export const Main: React.FC = () => {
       ) : null}
       <Sparkles t={t} t0={24.32} x={hp.sx} y={hp.sy} />
       {t >= 26 ? <S5Diorama t={t} /> : null}
+      {DBG.has("only-living") ? <S34Living t={t} /> : null}
     </AbsoluteFill>
   );
 };

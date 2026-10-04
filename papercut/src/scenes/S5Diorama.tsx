@@ -1,12 +1,12 @@
 import React from "react";
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill, Img, staticFile } from "remotion";
 import { Cam, Plane, project, Stage } from "../lib/engine";
 import { E, P, ease, lerp, rand, rr } from "../lib/paper";
 import { C } from "../lib/palette";
 import { Bulb, twinkle } from "../lib/props";
 import { Glow, LightRig } from "../lib/overlays";
-import { S34Living } from "./S34Living";
 import { FONT } from "./Fx";
+import { DBG } from "../lib/dbg";
 
 /**
  * ESCENA 5 (26–30 s): la cámara sale por la ventana de la sala y se aleja
@@ -233,12 +233,12 @@ export const S5Diorama: React.FC<{ t: number }> = ({ t }) => {
     <AbsoluteFill>
       <Stage cam={cam} background="#1b120d">
         {/* mesa donde está el diorama */}
-        <Plane x={0} y={-72} z={-900} w={2400} h={1600} orient="floor">
+        <Plane x={0} y={-72} z={-900} w={2400} h={1600} orient="floor" prio={-2}>
           <rect width={2400} height={1600} fill="#4a2e1e" />
           <rect width={2400} height={1600} fill="url(#tex-wood)" />
         </Plane>
         {/* fondo: cielo nocturno en arco */}
-        <Plane x={0} y={-10} z={330} w={900} h={1300} shadow={1}>
+        <Plane x={0} y={-10} z={330} w={900} h={1300} shadow={1} prio={-1}>
           <defs>
             <linearGradient id="sky5" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stopColor="#141c38" />
@@ -265,7 +265,7 @@ export const S5Diorama: React.FC<{ t: number }> = ({ t }) => {
           <path d="M290,0 C300,120 340,200 360,260 L380,260 C370,200 330,120 330,0 Z" fill="#d9d2c4" />
         </Plane>
         {/* base de madera del diorama */}
-        <Plane x={0} y={-72} z={-262} w={884} h={72} shadow={1}>
+        <Plane x={0} y={-72} z={-262} w={884} h={72} shadow={1} prio={0.1}>
           <rect width={884} height={72} fill={C.woodDark} />
           <rect width={884} height={72} fill="url(#tex-wood)" />
           <rect y={0} width={884} height={6} fill="#3a2214" opacity={0.5} />
@@ -330,7 +330,8 @@ export const S5Diorama: React.FC<{ t: number }> = ({ t }) => {
       {/* interior de la sala dentro de la ventana */}
       <div style={{ position: "absolute", left: p0.sx, top: p0.sy, width: rw, height: rh, overflow: "hidden" }}>
         <div style={{ position: "absolute", left: 0, top: 0, width: 1080, height: 1920, transform: `scale(${sc})`, transformOrigin: "0 0" }}>
-          <S34Living t={t} />
+          {/* sala pre-renderizada (composición Room5, tools/render_room5.sh) */}
+          <Img src={staticFile(`room5/r${String(Math.min(95, Math.max(0, Math.round((t - 26) * 24)))).padStart(3, "0")}.jpg`)} style={{ width: 1080, height: 1920 }} />
         </div>
         {/* travesaños de la ventana (aparecen al alejarse) */}
         <div style={{ position: "absolute", left: rw / 2 - 1.5 * sc * 15, top: 0, width: 3 * sc * 15, height: rh, background: C.cream, opacity: muntin }} />
@@ -367,18 +368,22 @@ export const S5Diorama: React.FC<{ t: number }> = ({ t }) => {
       {slP.visible ? null : null}
 
       {/* nieve cayendo */}
-      <svg width={1080} height={1920} style={{ position: "absolute", left: 0, top: 0 }}>
+      {DBG.has("nosnow") ? null : <svg width={1080} height={1920} style={{ position: "absolute", left: 0, top: 0 }}>
         {Array.from({ length: 70 }).map((_, i) => {
           const sp = 60 + rand(i) * 90;
           const x = (rand(i + 5) * 1080 + Math.sin(t * 0.8 + i) * 30) % 1080;
           const y = ((rand(i + 9) * 1920 + t * sp) % 1980) - 30;
           return <circle key={i} cx={x} cy={y} r={2 + rand(i + 2) * 4} fill="#fff" opacity={0.85 * ease(t, 26.4, 27.2)} />;
         })}
-      </svg>
+      </svg>}
 
       {/* texto final, letras de fieltro */}
-      <svg width={1080} height={1920} style={{ position: "absolute", left: 0, top: 0, overflow: "visible" }}>
-        <g style={{ filter: "drop-shadow(0 10px 10px rgba(10,5,2,0.5))" }}>
+      {DBG.has("notitle") ? null : <svg width={1080} height={1920} style={{ position: "absolute", left: 0, top: 0, overflow: "visible" }}>
+        <g>
+          {/* sombra de la letra recortada (copia desplazada, sin filtro) */}
+          <text x={546} y={312} textAnchor="middle" fontFamily={FONT} fontWeight={700} fontSize={128} fill="rgba(10,5,2,0.45)" stroke="rgba(10,5,2,0.45)" strokeWidth={14} opacity={ease(t, 27.9, 28.6)}>
+            {title.join("")}
+          </text>
           <text x={540} y={300} textAnchor="middle" fontFamily={FONT} fontWeight={700} fontSize={128}>
             {title.map((ch, i) => {
               const s = titleIn(i, 27.9);
@@ -389,11 +394,11 @@ export const S5Diorama: React.FC<{ t: number }> = ({ t }) => {
               );
             })}
           </text>
-          <text x={540} y={410} textAnchor="middle" fontFamily={FONT} fontWeight={600} fontSize={64} fill="#fbe7b8" opacity={subA} stroke="#2b4a33" strokeWidth={10} paintOrder="stroke">
+          <text x={540} y={1790} textAnchor="middle" fontFamily={FONT} fontWeight={600} fontSize={70} fill="#fbe7b8" opacity={subA} stroke="#2b4a33" strokeWidth={10} paintOrder="stroke">
             {sub}
           </text>
         </g>
-      </svg>
+      </svg>}
     </AbsoluteFill>
   );
 };

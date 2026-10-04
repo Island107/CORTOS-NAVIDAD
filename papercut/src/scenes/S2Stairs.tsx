@@ -20,8 +20,8 @@ const railY = (z: number) => TOP - (Math.max(0, Math.min(BOTTOM_Z, z)) / RUN) * 
 
 export const stairsCam = (t: number): Cam => {
   const u = t - 6;
-  const d = ease(u, 0.5, 4.5); // bajar
-  const turn = ease(u, 4.3, 5.8);
+  const d = ease(u, 0.4, 4.9); // bajar
+  const turn = ease(u, 4.6, 5.9);
   const z = lerp(-70, 420, d) + lerp(0, 40, turn);
   // altura de los ojos sobre el escalón (con rebote de pasos)
   const stepPh = d * N * Math.PI;
@@ -32,26 +32,25 @@ export const stairsCam = (t: number): Cam => {
     y: groundY + 112 + bob,
     z,
     yaw: lerp(4, 0, d) + 58 * turn,
-    pitch: lerp(-24, -36, ease(u, 0.3, 1.6)) + lerp(0, 22, ease(u, 3.4, 4.8)) + lerp(0, 8, turn),
+    pitch: lerp(-24, -36, ease(u, 0.3, 1.6)) + lerp(0, 22, ease(u, 3.8, 5.0)) + lerp(0, 8, turn),
     roll: Math.sin(stepPh) * 1.2 * (d > 0 && d < 1 ? 1 : 0),
   };
 };
 
-const Step: React.FC<{ i: number }> = ({ i }) => {
+const stepPlanes = (i: number) => {
   const yTop = TOP - RISE * i;
   const z = RUN * i;
-  return (
-    <>
-      {/* peralte */}
-      <Plane x={0} y={yTop - RISE} z={z} w={100} h={RISE}>
+  return [
+      /* peralte */
+      <Plane key={`r${i}`} x={0} y={yTop - RISE} z={z} w={100} h={RISE}>
         <rect width={100} height={RISE} fill={C.cream} />
         <rect width={100} height={RISE} fill="url(#tex-paper)" />
         <rect x={22} width={56} height={RISE} fill={C.redDark} />
         <rect x={22} width={56} height={RISE} fill="url(#tex-knit)" />
         <rect y={RISE - 2.2} width={100} height={2.2} fill="rgba(40,20,8,0.3)" />
-      </Plane>
-      {/* huella */}
-      <Plane x={0} y={yTop - RISE} z={z} w={100} h={RUN} orient="floor">
+      </Plane>,
+      /* huella (encima del piso de abajo) */
+      <Plane key={`t${i}`} x={0} y={yTop - RISE} z={z} w={100} h={RUN} orient="floor" prio={1}>
         <rect width={100} height={RUN} fill={C.wood} />
         <rect width={100} height={RUN} fill="url(#tex-wood)" />
         <rect x={22} width={56} height={RUN} fill={C.red} />
@@ -59,9 +58,8 @@ const Step: React.FC<{ i: number }> = ({ i }) => {
         <rect x={22} width={3} height={RUN} fill={C.gold} opacity={0.8} />
         <rect x={75} width={3} height={RUN} fill={C.gold} opacity={0.8} />
         <rect y={RUN - 3} width={100} height={3} fill={C.woodDark} opacity={0.7} />
-      </Plane>
-    </>
-  );
+      </Plane>,
+  ];
 };
 
 export const S2Stairs: React.FC<{ t: number }> = ({ t }) => {
@@ -109,7 +107,7 @@ export const S2Stairs: React.FC<{ t: number }> = ({ t }) => {
   // mano sobre el pasamanos (lado derecho)
   const hz = cam.z + 115;
   const hand = project(cam, 50, railY(hz) + 2, hz);
-  const handA = ease(u, 0.6, 1.1) * (1 - ease(u, 4.2, 4.7));
+  const handA = ease(u, 0.6, 1.1) * (1 - ease(u, 3.0, 3.5));
 
   return (
     <AbsoluteFill>
@@ -149,7 +147,7 @@ export const S2Stairs: React.FC<{ t: number }> = ({ t }) => {
           <path d={`M${lz(442)},${HH} V${HH - 223} H${lz(608)} V${HH} H${lz(600)} V${HH - 215} H${lz(450)} V${HH} Z`} fill={C.cream} />
         </Plane>
         {/* la sala vista por la puerta: resplandor y árbol */}
-        <Plane x={420} y={0} z={530} w={300} h={260} orient="side" shadow={0}>
+        <Plane x={420} y={0} z={530} w={300} h={260} orient="side" prio={-1}>
           <rect width={300} height={260} fill="url(#wp-stripe)" />
           <rect width={300} height={260} fill="#ffb060" opacity={0.3} />
           <g transform="translate(70 40) scale(1)">
@@ -160,7 +158,7 @@ export const S2Stairs: React.FC<{ t: number }> = ({ t }) => {
           </g>
         </Plane>
         {/* pared del fondo, abajo */}
-        <Plane x={100} y={0} z={z1} w={300} h={HH}>
+        <Plane x={100} y={0} z={z1} w={300} h={HH} prio={0}>
           <rect width={300} height={HH} fill="url(#wp-hall)" />
           <rect width={300} height={HH} fill="url(#tex-paper)" />
           <Frame x={40} y={HH - 190} w={60} h={70} kind={0} />
@@ -170,11 +168,9 @@ export const S2Stairs: React.FC<{ t: number }> = ({ t }) => {
           <P d={`M200,${HH - 170} c-10,10 -14,50 -8,70 h30 c4,-20 0,-60 -8,-70 z`} fill={C.mustard} tex="knitS" sh={1} />
         </Plane>
         {/* escalones */}
-        {Array.from({ length: N }).map((_, i) => (
-          <Step key={i} i={i} />
-        ))}
+        {Array.from({ length: N }).flatMap((_, i) => stepPlanes(i))}
         {/* barandal derecho con guirnalda y foquitos */}
-        <Plane x={50} y={0} z={(z0 + z1) / 2} w={L} h={HH} orient="side">
+        <Plane x={50} y={0} z={(z0 + z1) / 2} w={L} h={HH} orient="side" prio={2}>
           <P d={stringer} fill={C.cream} tex="paper" sh={0} />
           {balusters}
           {/* postes */}

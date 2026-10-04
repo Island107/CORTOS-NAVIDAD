@@ -119,10 +119,11 @@ const santaState = (t: number) => {
     elbowL = 10;
     elbowR = 10;
     // brazo que saluda (de cabeza)
-    armR = lerp(10, 158 + 14 * Math.sin(t * 10), w2);
-    elbowR = lerp(10, 20 + 16 * Math.sin(t * 10 + 1), w2);
-    armL = lerp(5, 175, ease(t, 21.5, 21.8));
-    elbowL = 5;
+    // (de cabeza los lados se invierten: el brazo izquierdo queda a la derecha en pantalla)
+    armL = lerp(10, 158 + 14 * Math.sin(t * 10), w2);
+    elbowL = lerp(10, 20 + 16 * Math.sin(t * 10 + 1), w2);
+    armR = lerp(5, 120, ease(t, 21.5, 21.8));
+    elbowR = 5;
     wink = ease(t, 23.25, 23.4) * (1 - ease(t, 23.75, 23.9));
     headTilt = 0;
   }
@@ -130,8 +131,8 @@ const santaState = (t: number) => {
   return { x, y, z, view, flipX, sack, armL, armR, elbowL, elbowR, headTilt, walk, visible, upside, rotZ, wink, blink };
 };
 
-const ContactShadow: React.FC<{ x: number; z: number; w: number; d: number; a?: number }> = ({ x, z, w, d, a = 0.35 }) => (
-  <Plane x={x} y={0.6} z={z - d / 2} w={w} h={d} orient="floor">
+const contactShadow = ({ x, z, w, d, a = 0.35 }: { x: number; z: number; w: number; d: number; a?: number }) => (
+  <Plane key={`cs-${x}-${z}`} x={x} y={2.6} z={z - d / 2} w={w} h={d} orient="floor" prio={0.2}>
     <defs>
       <radialGradient id="cs">
         <stop offset="0" stopColor="#1a0c05" stopOpacity={0.9} />
@@ -148,6 +149,7 @@ export const S34Living: React.FC<{ t: number; camOverride?: Cam; noOverlay?: boo
   const fireK = lerp(1, 0.12, ease(t, 18.3, 18.9)) + lerp(0, 0.88, ease(t, 24.8, 25.4));
   const flick = 0.85 + 0.15 * Math.sin(t * 13) * Math.sin(t * 7.3);
   const W = ROOM.x1 - ROOM.x0;
+  const RX = (ROOM.x0 + ROOM.x1) / 2;
   const D = ROOM.z1;
   const H = ROOM.h;
   const lx = (x: number) => x - ROOM.x0;
@@ -170,12 +172,12 @@ export const S34Living: React.FC<{ t: number; camOverride?: Cam; noOverlay?: boo
     <AbsoluteFill>
       <Stage cam={cam} background="#140c08">
         {/* piso */}
-        <Plane x={0} y={0} z={0} w={W} h={D} orient="floor">
+        <Plane x={RX} y={0} z={0} w={W} h={D} orient="floor">
           <rect width={W} height={D} fill="url(#floor-planks)" />
           <rect width={W} height={D} fill="url(#tex-wood)" />
         </Plane>
         {/* tapete redondo */}
-        <Plane x={-10} y={0.3} z={200} w={260} h={200} orient="floor">
+        <Plane x={-10} y={2} z={200} w={260} h={200} orient="floor" prio={0.1}>
           <ellipse cx={130} cy={100} rx={130} ry={100} fill={C.cream} />
           <ellipse cx={130} cy={100} rx={110} ry={84} fill={C.red} />
           <ellipse cx={130} cy={100} rx={86} ry={66} fill={C.cream} />
@@ -184,7 +186,7 @@ export const S34Living: React.FC<{ t: number; camOverride?: Cam; noOverlay?: boo
           <ellipse cx={130} cy={100} rx={130} ry={100} fill="url(#tex-knit)" />
         </Plane>
         {/* techo */}
-        <Plane x={0} y={H} z={D} w={W} h={D} orient="ceiling">
+        <Plane x={RX} y={H} z={D} w={W} h={D} orient="ceiling">
           <rect width={W} height={D} fill="#e6d6bb" />
           <rect width={W} height={D} fill="url(#tex-paper)" />
         </Plane>
@@ -206,24 +208,28 @@ export const S34Living: React.FC<{ t: number; camOverride?: Cam; noOverlay?: boo
         </Plane>
 
         {/* interior de la chimenea */}
-        <Plane x={FX} y={-5} z={552} w={90} h={90}>
+        <Plane x={FX} y={-5} z={552} w={90} h={90} prio={-1}>
           <Firebox />
         </Plane>
-        <Plane x={FX} y={0} z={540} w={90} h={70}>
+        <Plane x={FX} y={0} z={540} w={90} h={70} prio={-1}>
           <Fire cx={45} by={66} t={t} k={fireK} w={44} />
         </Plane>
-        <Plane x={OPEN.x0} y={0} z={530} w={50} h={OPEN.top} orient="side">
+        <Plane x={OPEN.x0} y={0} z={530} w={50} h={OPEN.top} orient="side" prio={-0.5}>
           <rect width={50} height={OPEN.top} fill="#2a140d" />
         </Plane>
-        <Plane x={OPEN.x1} y={0} z={530} w={50} h={OPEN.top} orient="side">
+        <Plane x={OPEN.x1} y={0} z={530} w={50} h={OPEN.top} orient="side" prio={-0.5}>
           <rect width={50} height={OPEN.top} fill="#2a140d" />
         </Plane>
 
         {/* pared del fondo */}
-        <Plane x={0} y={0} z={ROOM.z1} w={W} h={H}>
+        <Plane x={RX} y={0} z={ROOM.z1} w={W} h={H} prio={0}>
           <path d={wallPath} fillRule="evenodd" fill="url(#wp-stripe)" />
           <path d={wallPath} fillRule="evenodd" fill="url(#tex-paper)" />
           <path d={`M0,${H - 90} H${lx(OPEN.x0)} V${H} H0 Z M${lx(OPEN.x1)},${H - 90} H${W} V${H} H${lx(OPEN.x1)} Z`} fill={C.cream} />
+          {/* hollín alrededor del hueco (solo se ve a través de la boca de la chimenea) */}
+          <rect x={lx(OPEN.x0) - 30} y={ly(OPEN.top) - 30} width={30} height={OPEN.top + 30} fill="#2a140d" />
+          <rect x={lx(OPEN.x1)} y={ly(OPEN.top) - 30} width={30} height={OPEN.top + 30} fill="#2a140d" />
+          <rect x={lx(OPEN.x0) - 30} y={ly(OPEN.top) - 30} width={OPEN.x1 - OPEN.x0 + 60} height={30} fill="#2a140d" />
           <rect x={0} y={H - 94} width={W} height={6} fill={C.woodDark} />
           {/* chimenea (parte alta, de yeso) */}
           <P d={rr(lx(FX - 58), 0, 116, H - FH + 4, 0)} fill="#e9dcc3" tex="paper" sh={1.2} />
@@ -246,7 +252,7 @@ export const S34Living: React.FC<{ t: number; camOverride?: Cam; noOverlay?: boo
         </Plane>
 
         {/* árbol (dos capas para parallax) */}
-        <ContactShadow x={TREE.x} z={TREE.z - 10} w={150} d={60} a={0.45} />
+        {contactShadow({ x: TREE.x, z: TREE.z - 10, w: 150, d: 60, a: 0.45 })}
         <Plane x={TREE.x} y={0} z={TREE.z} w={140} h={220} shadow={1}>
           <Tree t={t} layer="back" />
         </Plane>
@@ -258,7 +264,7 @@ export const S34Living: React.FC<{ t: number; camOverride?: Cam; noOverlay?: boo
         </Plane>
 
         {/* sillón y perrito */}
-        <ContactShadow x={SOFA.x} z={SOFA.z + 10} w={190} d={50} a={0.5} />
+        {contactShadow({ x: SOFA.x, z: SOFA.z + 10, w: 190, d: 50, a: 0.5 })}
         <Plane x={SOFA.x} y={0} z={SOFA.z + 16} w={170} h={92} shadow={1}>
           <SofaBack />
         </Plane>
@@ -284,7 +290,7 @@ export const S34Living: React.FC<{ t: number; camOverride?: Cam; noOverlay?: boo
         {/* Santa */}
         {st.visible ? (
           <>
-            {!st.upside && st.y < 20 && st.z < 500 ? <ContactShadow x={st.x} z={st.z} w={90} d={40} a={0.5} /> : null}
+            {!st.upside && st.y < 20 && st.z < 500 ? contactShadow({ x: st.x, z: st.z, w: 90, d: 40, a: 0.5 }) : null}
             <Plane
               x={st.x}
               y={st.y}
@@ -292,6 +298,7 @@ export const S34Living: React.FC<{ t: number; camOverride?: Cam; noOverlay?: boo
               w={SANTA_W}
               h={SANTA_H}
               rotZ={st.rotZ}
+              prio={st.z > FZ ? -0.7 : 1}
               shadow={st.upside ? 0.6 : 1}
               style={{ scale: `${st.flipX} 1` }}
             >
@@ -306,7 +313,7 @@ export const S34Living: React.FC<{ t: number; camOverride?: Cam; noOverlay?: boo
                 headTilt={st.headTilt}
                 wink={st.wink}
                 blink={st.blink}
-                hatSwing={st.upside ? -62 + Math.sin(t * 3) * 6 : 0}
+                hatSwing={st.upside ? Math.sin(t * 3) * 5 : 0}
               />
             </Plane>
           </>

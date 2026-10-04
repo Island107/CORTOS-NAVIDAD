@@ -164,7 +164,7 @@ export const S1Bedroom: React.FC<{ t: number }> = ({ t }) => {
             <rect width={W} height={D} fill="url(#tex-wood)" />
           </Plane>
           {/* tapete */}
-          <Plane x={20} y={0.4} z={140} w={150} h={110} orient="floor">
+          <Plane x={20} y={2} z={140} w={150} h={110} orient="floor" prio={0.1}>
             <P d="M75,0 C120,0 150,25 150,55 C150,85 120,110 75,110 C30,110 0,85 0,55 C0,25 30,0 75,0 Z" fill={C.mustard} tex="knit" sh={0} />
             <path d="M75,12 C112,12 136,32 136,55 C136,78 112,98 75,98 C38,98 14,78 14,55 C14,32 38,12 75,12 Z" fill="none" stroke={C.cream} strokeWidth={4} strokeDasharray="5 3" />
           </Plane>
@@ -188,13 +188,13 @@ export const S1Bedroom: React.FC<{ t: number }> = ({ t }) => {
           </Plane>
 
           {/* pasillo detrás de la puerta: cálido, con barandal y guirnalda */}
-          <Plane x={110} y={0} z={ROOM.z1 + 120} w={260} h={ROOM.h} shadow={0.6}>
+          <Plane x={110} y={0} z={ROOM.z1 + 120} w={260} h={ROOM.h} shadow={0.6} prio={-1}>
             <rect width={260} height={ROOM.h} fill="url(#wp-hall)" />
             <rect width={260} height={ROOM.h} fill="#ffb060" opacity={0.25} />
             <rect width={260} height={ROOM.h} fill="url(#tex-paper)" />
             <Frame x={150} y={60} w={34} h={44} kind={1} />
           </Plane>
-          <Plane x={110} y={0} z={ROOM.z1 + 60} w={260} h={ROOM.h} svg>
+          <Plane x={110} y={0} z={ROOM.z1 + 60} w={260} h={ROOM.h} prio={-1}>
             {/* barandal de la escalera, visto de frente */}
             <P d={rr(0, ROOM.h - 98, 260, 7, 2)} fill={C.woodDark} tex="wood" sh={1} />
             {Array.from({ length: 13 }).map((_, i) => (
@@ -202,13 +202,13 @@ export const S1Bedroom: React.FC<{ t: number }> = ({ t }) => {
             ))}
             <Garland pts={swag(0, ROOM.h - 94, 130, ROOM.h - 94, 14, 20).concat(swag(130, ROOM.h - 94, 260, ROOM.h - 94, 14, 20).slice(1))} t={t} thick={7} seed={5} bulbs={2} bulbR={1.6} />
           </Plane>
-          <Plane x={110} y={0} z={ROOM.z1} w={160} h={120} orient="floor">
+          <Plane x={110} y={0} z={ROOM.z1} w={160} h={120} orient="floor" prio={-2}>
             <rect width={160} height={120} fill="url(#floor-planks)" />
             <rect width={160} height={120} fill="#ffb060" opacity={0.15} />
           </Plane>
 
           {/* pared del fondo */}
-          <Plane x={0} y={0} z={ROOM.z1} w={W} h={ROOM.h} shadow={0}>
+          <Plane x={0} y={0} z={ROOM.z1} w={W} h={ROOM.h} prio={0}>
             <path d={wallPath} fillRule="evenodd" fill="url(#wp-stars)" />
             <path d={wallPath} fillRule="evenodd" fill="url(#tex-paper)" />
             <P d={rr(0, ROOM.h - 14, lx0, 14, 0)} fill={C.cream} tex="paper" sh={0} />

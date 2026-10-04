@@ -11,5 +11,5 @@ Config.setRspack(true);
 Config.setVideoImageFormat("jpeg");
 Config.setOverwriteOutput(true);
 // Chromium preinstalado en el contenedor (evita descargar otro navegador)
-Config.setBrowserExecutable("/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell");
+Config.setBrowserExecutable(process.cwd() + "/tools/chrome-wrapper.sh");
 Config.setChromiumOpenGlRenderer("swangle");
