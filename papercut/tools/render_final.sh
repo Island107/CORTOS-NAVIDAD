@@ -13,6 +13,7 @@ start=$(date +%s)
 pids=()
 for sc in "${SCENES[@]}"; do
   set -- $sc
+  if [ -n "$ONLY" ] && [[ " $ONLY " != *" $1 "* ]]; then continue; fi
   ( s=$(date +%s)
     npx remotion render build Navidad $OUT/$1.mp4 --frames=$2 --scale=$SCALE --muted \
       --concurrency=1 --codec=h264 --crf=17 --pixel-format=yuv420p > $OUT/$1.log 2>&1

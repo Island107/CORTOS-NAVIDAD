@@ -29,7 +29,7 @@ export const livingCam = (t: number): Cam => {
   return {
     x: lerp(lerp(-28, 0, a), FX - 4, push),
     y: lerp(lerp(104, 110, a), 86, push) + breathe * 0.4 + back * 6,
-    z: lerp(lerp(-55, 40, a) + 30 * drift, 318, push) - back * 30,
+    z: lerp(lerp(-15, 40, a) + 30 * drift, 318, push) - back * 30,
     yaw: lerp(lerp(7, 3, a) + 3 * drift, 0, push),
     pitch: lerp(-6, -2.5, push),
     roll: lerp(2.5, 0, a),
@@ -361,17 +361,6 @@ export const S34Living: React.FC<{ t: number; camOverride?: Cam; noOverlay?: boo
           );
         })}
 
-        {/* marco de la puerta (primer plano, al inicio) */}
-        <Plane x={-46} y={0} z={2} w={260} h={H} ax={1} shadow={1}>
-          <rect width={260} height={H} fill="url(#wp-hall)" />
-          <rect width={260} height={H} fill="#3a2010" opacity={0.45} />
-          <P d={rr(246, 40, 14, H - 40, 0)} fill={C.cream} tex="paper" sh={0} />
-        </Plane>
-        <Plane x={60} y={210} z={2} w={300} h={50} shadow={1}>
-          <rect width={300} height={50} fill="url(#wp-hall)" />
-          <rect width={300} height={50} fill="#3a2010" opacity={0.45} />
-          <P d={rr(0, 36, 300, 14, 0)} fill={C.cream} tex="paper" sh={0} />
-        </Plane>
       </Stage>
       {noOverlay ? null : <LightRig tint="#3a1606" tintA={0.16} glows={glows} vignette={0.5} />}
     </AbsoluteFill>

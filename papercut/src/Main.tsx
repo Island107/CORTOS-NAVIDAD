@@ -14,7 +14,7 @@ import { DBG } from "./lib/dbg";
 loadFont({ family: "Fredoka", url: staticFile("fonts/fredoka-latin-700-normal.woff2"), weight: "700" });
 loadFont({ family: "Fredoka", url: staticFile("fonts/fredoka-latin-600-normal.woff2"), weight: "600" });
 
-const fade = (t: number, a: number, b: number) => Math.max(0, Math.min(1, (t - a) / (b - a)));
+const flash = (t: number, c: number) => Math.max(0, 1 - Math.abs(t - c) / 0.35) ** 1.5;
 
 export const Main: React.FC = () => {
   const frame = useCurrentFrame();
@@ -27,17 +27,11 @@ export const Main: React.FC = () => {
     <AbsoluteFill style={{ background: "#120c0a" }}>
       <PaperDefs />
       <Audio src={staticFile("audio/sfx.wav")} />
-      {t < 6.3 ? <S1Bedroom t={t} /> : null}
-      {t >= 5.9 && t < 12.4 ? (
-        <AbsoluteFill style={{ opacity: fade(t, 5.9, 6.3) }}>
-          <S2Stairs t={t} />
-        </AbsoluteFill>
-      ) : null}
-      {t >= 11.6 && t < 26 ? (
-        <AbsoluteFill style={{ opacity: fade(t, 11.6, 12.3) }}>
-          <S34Living t={t} />
-        </AbsoluteFill>
-      ) : null}
+      {t < 6 ? <S1Bedroom t={t} /> : null}
+      {t >= 6 && t < 12 ? <S2Stairs t={t} /> : null}
+      {t >= 12 && t < 26 ? <S34Living t={t} /> : null}
+      {/* destellos cálidos de transición: la luz del pasillo y de la sala "deslumbra" */}
+      <AbsoluteFill style={{ background: "#ffd9a0", opacity: flash(t, 6) * 0.9 + flash(t, 12) * 0.85 }} />
       {t >= 21.5 && t < 25 ? (
         <Bubble t={t} t0={21.95} t1={24.15} x={hp.sx + 150} y={hp.sy - 560} tailX={hp.sx + 40} tailY={hp.sy - 140} text="¡Jo, jo, jo!" />
       ) : null}

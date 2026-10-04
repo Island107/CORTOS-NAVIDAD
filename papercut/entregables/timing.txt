@@ -1,0 +1,5 @@
+s2: 144 cuadros en 202 s (1.40 s/cuadro por proceso)
+s3: 192 cuadros en 207 s (1.07 s/cuadro por proceso)
+s5: 96 cuadros en 209 s (2.17 s/cuadro por proceso)
+s1: 144 cuadros en 225 s (1.56 s/cuadro por proceso)
+total en paralelo: 225 s para 720 cuadros (.31 s/cuadro efectivo)

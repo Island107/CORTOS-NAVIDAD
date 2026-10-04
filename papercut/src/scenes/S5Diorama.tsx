@@ -106,7 +106,7 @@ const House: React.FC<{ t: number }> = ({ t }) => {
       {/* ventana de la ático (redonda) */}
       <E cx={X(0)} cy={Y(600)} rx={26} fill={C.cream} tex="paper" sh={1} />
       <E cx={X(0)} cy={Y(600)} rx={20} fill="#ffd27a" tex={null} sh={0} />
-      <path d={`M${X(-20)},${Y(600)} h40 M${X(0)},${Y(580)} v40`} stroke={C.cream} strokeWidth={3} />
+      <path d={`M${X(-20)},${Y(600)} h40 M${X(0)},${Y(620)} v40`} stroke={C.cream} strokeWidth={3} />
       {/* ventanas de arriba */}
       {[
         [-75, 330, 80, 110, "#2c3a62"],
