@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1920">
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      :root {
+        --ground: #000;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--ground);
+      }
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--ground);
+      }
+      /* Cada toma vive en un "cuadro" que hace el acercamiento lento de cámara */
+      .shot {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+      .cam {
+        position: absolute;
+        inset: 0;
+        transform-origin: 50% 50%;
+      }
+      .cam video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      #fade {
+        position: absolute;
+        inset: 0;
+        background: #000;
+        opacity: 0;
+        z-index: 50;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-fjkh" id="root" data-composition-id="main" data-start="0" data-duration="25" data-width="1080" data-height="1920" data-layout-allow-overlap="">
+      <!-- 1. El niño dormido -->
+      <div data-hf-id="hf-6iko" id="shot1" class="shot" data-layout-allow-overflow="" style="z-index: 1">
+        <div data-hf-id="hf-c0h9" id="cam1" class="cam">
+          <video data-color-grading="{&quot;preset&quot;:null,&quot;intensity&quot;:1,&quot;adjust&quot;:{&quot;exposure&quot;:0.18,&quot;contrast&quot;:0,&quot;highlights&quot;:0,&quot;shadows&quot;:0.12,&quot;whites&quot;:0,&quot;blacks&quot;:0,&quot;temperature&quot;:0.14,&quot;tint&quot;:0.02,&quot;vibrance&quot;:0.06,&quot;saturation&quot;:0},&quot;details&quot;:{&quot;vignette&quot;:0.16,&quot;vignetteMidpoint&quot;:0.5,&quot;vignetteRoundness&quot;:0,&quot;vignetteFeather&quot;:0.65,&quot;grain&quot;:0.1,&quot;grainSize&quot;:0.2,&quot;grainRoughness&quot;:0.55},&quot;effects&quot;:{&quot;blur&quot;:0,&quot;pixelate&quot;:0,&quot;chromaBleed&quot;:0,&quot;tapeDamage&quot;:0,&quot;tapeTracking&quot;:0,&quot;tapeNoise&quot;:1,&quot;tapeSpeed&quot;:0.5,&quot;filmArtifacts&quot;:0,&quot;halftone&quot;:0,&quot;halftoneSize&quot;:0,&quot;twoInkPrint&quot;:0,&quot;twoInkPrintSize&quot;:0,&quot;ascii&quot;:0,&quot;asciiSize&quot;:0.06578947368421052,&quot;asciiInvert&quot;:0,&quot;asciiStyle&quot;:0,&quot;asciiColor&quot;:1,&quot;asciiRotation&quot;:0,&quot;dither&quot;:0,&quot;ditherSize&quot;:0,&quot;bloom&quot;:0,&quot;bloomRadius&quot;:8,&quot;monoScreen&quot;:0,&quot;monoScreenSize&quot;:0,&quot;monoScreenAngle&quot;:0,&quot;monoScreenSpread&quot;:0,&quot;monoScreenShape&quot;:0,&quot;monoScreenInvert&quot;:0,&quot;scanlines&quot;:0,&quot;scanlineCount&quot;:0,&quot;scanlineSoftness&quot;:0,&quot;chromaticAberration&quot;:0,&quot;chromaticAngle&quot;:0,&quot;crtCurvature&quot;:0,&quot;digitalGlitch&quot;:0,&quot;digitalGlitchColorSplit&quot;:0,&quot;digitalGlitchLineTear&quot;:0,&quot;digitalGlitchPixelate&quot;:0,&quot;digitalGlitchBlockAmount&quot;:0,&quot;digitalGlitchBlockDisplacement&quot;:0,&quot;digitalGlitchBlockOpacity&quot;:0,&quot;digitalGlitchSpeed&quot;:0,&quot;engraving&quot;:0,&quot;engravingSpacing&quot;:0.4117647058823529,&quot;engravingMinThickness&quot;:0.2,&quot;engravingMaxThickness&quot;:0.4571428571428572,&quot;engravingAngle&quot;:0.25,&quot;engravingContrast&quot;:0.4666666666666667,&quot;engravingSharpness&quot;:0.59,&quot;engravingWave&quot;:0.2,&quot;engravingWaveFrequency&quot;:0.2222222222222222,&quot;crosshatch&quot;:0,&quot;crosshatchSpacing&quot;:0.28,&quot;crosshatchThickness&quot;:0.25,&quot;crosshatchAngle&quot;:0.25,&quot;crosshatchContrast&quot;:0.3333333333333333,&quot;crosshatchEdges&quot;:0.5,&quot;crosshatchLineWeight&quot;:0,&quot;crosshatchWave&quot;:0.33,&quot;crosshatchWaveFrequency&quot;:0.2222222222222222,&quot;kuwahara&quot;:0,&quot;kuwaharaRadius&quot;:0.14285714285714285,&quot;kuwaharaSharpness&quot;:0.3125,&quot;kuwaharaSaturation&quot;:0.5},&quot;lut&quot;:null,&quot;colorSpace&quot;:&quot;rec709&quot;}" data-hf-id="hf-07z1" id="v1" class="clip" src="assets/01-nino-dormido.mp4" data-start="0" data-duration="11.1" data-track-index="0" data-has-audio="true" playsinline></video>
+        </div>
+      </div>
+
+      <!-- 2. Tommy bajando la escalera -->
+      <div data-hf-id="hf-veui" id="shot2" class="shot" data-layout-allow-overflow="" style="z-index: 2">
+        <div data-hf-id="hf-fyla" id="cam2" class="cam">
+          <video data-color-grading="{&quot;preset&quot;:null,&quot;intensity&quot;:1,&quot;adjust&quot;:{&quot;exposure&quot;:-0.06,&quot;contrast&quot;:0,&quot;highlights&quot;:-0.08,&quot;shadows&quot;:0,&quot;whites&quot;:0,&quot;blacks&quot;:0,&quot;temperature&quot;:0.02,&quot;tint&quot;:0,&quot;vibrance&quot;:0,&quot;saturation&quot;:-0.04},&quot;details&quot;:{&quot;vignette&quot;:0.16,&quot;vignetteMidpoint&quot;:0.5,&quot;vignetteRoundness&quot;:0,&quot;vignetteFeather&quot;:0.65,&quot;grain&quot;:0.1,&quot;grainSize&quot;:0.2,&quot;grainRoughness&quot;:0.55},&quot;effects&quot;:{&quot;blur&quot;:0,&quot;pixelate&quot;:0,&quot;chromaBleed&quot;:0,&quot;tapeDamage&quot;:0,&quot;tapeTracking&quot;:0,&quot;tapeNoise&quot;:1,&quot;tapeSpeed&quot;:0.5,&quot;filmArtifacts&quot;:0,&quot;halftone&quot;:0,&quot;halftoneSize&quot;:0,&quot;twoInkPrint&quot;:0,&quot;twoInkPrintSize&quot;:0,&quot;ascii&quot;:0,&quot;asciiSize&quot;:0.06578947368421052,&quot;asciiInvert&quot;:0,&quot;asciiStyle&quot;:0,&quot;asciiColor&quot;:1,&quot;asciiRotation&quot;:0,&quot;dither&quot;:0,&quot;ditherSize&quot;:0,&quot;bloom&quot;:0,&quot;bloomRadius&quot;:8,&quot;monoScreen&quot;:0,&quot;monoScreenSize&quot;:0,&quot;monoScreenAngle&quot;:0,&quot;monoScreenSpread&quot;:0,&quot;monoScreenShape&quot;:0,&quot;monoScreenInvert&quot;:0,&quot;scanlines&quot;:0,&quot;scanlineCount&quot;:0,&quot;scanlineSoftness&quot;:0,&quot;chromaticAberration&quot;:0,&quot;chromaticAngle&quot;:0,&quot;crtCurvature&quot;:0,&quot;digitalGlitch&quot;:0,&quot;digitalGlitchColorSplit&quot;:0,&quot;digitalGlitchLineTear&quot;:0,&quot;digitalGlitchPixelate&quot;:0,&quot;digitalGlitchBlockAmount&quot;:0,&quot;digitalGlitchBlockDisplacement&quot;:0,&quot;digitalGlitchBlockOpacity&quot;:0,&quot;digitalGlitchSpeed&quot;:0,&quot;engraving&quot;:0,&quot;engravingSpacing&quot;:0.4117647058823529,&quot;engravingMinThickness&quot;:0.2,&quot;engravingMaxThickness&quot;:0.4571428571428572,&quot;engravingAngle&quot;:0.25,&quot;engravingContrast&quot;:0.4666666666666667,&quot;engravingSharpness&quot;:0.59,&quot;engravingWave&quot;:0.2,&quot;engravingWaveFrequency&quot;:0.2222222222222222,&quot;crosshatch&quot;:0,&quot;crosshatchSpacing&quot;:0.28,&quot;crosshatchThickness&quot;:0.25,&quot;crosshatchAngle&quot;:0.25,&quot;crosshatchContrast&quot;:0.3333333333333333,&quot;crosshatchEdges&quot;:0.5,&quot;crosshatchLineWeight&quot;:0,&quot;crosshatchWave&quot;:0.33,&quot;crosshatchWaveFrequency&quot;:0.2222222222222222,&quot;kuwahara&quot;:0,&quot;kuwaharaRadius&quot;:0.14285714285714285,&quot;kuwaharaSharpness&quot;:0.3125,&quot;kuwaharaSaturation&quot;:0.5},&quot;lut&quot;:null,&quot;colorSpace&quot;:&quot;rec709&quot;}" data-hf-id="hf-2dbw" id="v2" class="clip" src="assets/02-tommy-escalera.mp4" data-start="10.5" data-duration="5.08" data-track-index="1" data-has-audio="true" playsinline></video>
+        </div>
+      </div>
+
+      <!-- 3. Santa en la sala -->
+      <div data-hf-id="hf-z0s4" id="shot3" class="shot" data-layout-allow-overflow="" style="z-index: 3">
+        <div data-hf-id="hf-jwpb" id="cam3" class="cam">
+          <video data-color-grading="{&quot;preset&quot;:null,&quot;intensity&quot;:1,&quot;adjust&quot;:{&quot;exposure&quot;:0.02,&quot;contrast&quot;:0,&quot;highlights&quot;:0,&quot;shadows&quot;:0,&quot;whites&quot;:0,&quot;blacks&quot;:0,&quot;temperature&quot;:0.04,&quot;tint&quot;:0,&quot;vibrance&quot;:0.04,&quot;saturation&quot;:0},&quot;details&quot;:{&quot;vignette&quot;:0.16,&quot;vignetteMidpoint&quot;:0.5,&quot;vignetteRoundness&quot;:0,&quot;vignetteFeather&quot;:0.65,&quot;grain&quot;:0.1,&quot;grainSize&quot;:0.2,&quot;grainRoughness&quot;:0.55},&quot;effects&quot;:{&quot;blur&quot;:0,&quot;pixelate&quot;:0,&quot;chromaBleed&quot;:0,&quot;tapeDamage&quot;:0,&quot;tapeTracking&quot;:0,&quot;tapeNoise&quot;:1,&quot;tapeSpeed&quot;:0.5,&quot;filmArtifacts&quot;:0,&quot;halftone&quot;:0,&quot;halftoneSize&quot;:0,&quot;twoInkPrint&quot;:0,&quot;twoInkPrintSize&quot;:0,&quot;ascii&quot;:0,&quot;asciiSize&quot;:0.06578947368421052,&quot;asciiInvert&quot;:0,&quot;asciiStyle&quot;:0,&quot;asciiColor&quot;:1,&quot;asciiRotation&quot;:0,&quot;dither&quot;:0,&quot;ditherSize&quot;:0,&quot;bloom&quot;:0,&quot;bloomRadius&quot;:8,&quot;monoScreen&quot;:0,&quot;monoScreenSize&quot;:0,&quot;monoScreenAngle&quot;:0,&quot;monoScreenSpread&quot;:0,&quot;monoScreenShape&quot;:0,&quot;monoScreenInvert&quot;:0,&quot;scanlines&quot;:0,&quot;scanlineCount&quot;:0,&quot;scanlineSoftness&quot;:0,&quot;chromaticAberration&quot;:0,&quot;chromaticAngle&quot;:0,&quot;crtCurvature&quot;:0,&quot;digitalGlitch&quot;:0,&quot;digitalGlitchColorSplit&quot;:0,&quot;digitalGlitchLineTear&quot;:0,&quot;digitalGlitchPixelate&quot;:0,&quot;digitalGlitchBlockAmount&quot;:0,&quot;digitalGlitchBlockDisplacement&quot;:0,&quot;digitalGlitchBlockOpacity&quot;:0,&quot;digitalGlitchSpeed&quot;:0,&quot;engraving&quot;:0,&quot;engravingSpacing&quot;:0.4117647058823529,&quot;engravingMinThickness&quot;:0.2,&quot;engravingMaxThickness&quot;:0.4571428571428572,&quot;engravingAngle&quot;:0.25,&quot;engravingContrast&quot;:0.4666666666666667,&quot;engravingSharpness&quot;:0.59,&quot;engravingWave&quot;:0.2,&quot;engravingWaveFrequency&quot;:0.2222222222222222,&quot;crosshatch&quot;:0,&quot;crosshatchSpacing&quot;:0.28,&quot;crosshatchThickness&quot;:0.25,&quot;crosshatchAngle&quot;:0.25,&quot;crosshatchContrast&quot;:0.3333333333333333,&quot;crosshatchEdges&quot;:0.5,&quot;crosshatchLineWeight&quot;:0,&quot;crosshatchWave&quot;:0.33,&quot;crosshatchWaveFrequency&quot;:0.2222222222222222,&quot;kuwahara&quot;:0,&quot;kuwaharaRadius&quot;:0.14285714285714285,&quot;kuwaharaSharpness&quot;:0.3125,&quot;kuwaharaSaturation&quot;:0.5},&quot;lut&quot;:null,&quot;colorSpace&quot;:&quot;rec709&quot;}" data-hf-id="hf-b2f5" id="v3" class="clip" src="assets/03-santa.mp4" data-start="14.98" data-duration="10.02" data-track-index="2" data-has-audio="true" playsinline></video>
+        </div>
+      </div>
+
+      <!-- Destellos de luz cálida en los cambios de escena -->
+      <div data-hf-id="hf-902k" id="leak1" class="clip" style="position: absolute; inset: 0; z-index: 20" data-start="9.85" data-duration="1.7" data-track-index="3" data-track-kind="graphics" data-composition-id="organic-light-leak-overlay" data-composition-src="compositions/organic-light-leak-overlay.html" data-width="1080" data-height="1920"></div>
+      <div data-hf-id="hf-8939" id="leak2" class="clip" style="position: absolute; inset: 0; z-index: 20" data-start="14.33" data-duration="1.7" data-track-index="4" data-track-kind="graphics" data-composition-id="organic-light-leak-overlay" data-composition-src="compositions/organic-light-leak-overlay.html" data-width="1080" data-height="1920"></div>
+
+      <!-- Fundido final a negro -->
+      <div data-hf-id="hf-128z" id="fade"></div>
+
+      <!-- Sonido: soplo suave en cada cambio de escena (pico alineado al destello) -->
+      <audio data-hf-id="hf-x2mp" id="whoosh1" class="clip" src="assets/sfx/whoosh-cinematic.mp3" data-start="8.05" data-duration="4.3" data-track-index="5" data-volume="0.3"></audio>
+      <audio data-hf-id="hf-jalh" id="whoosh2" class="clip" src="assets/sfx/whoosh-cinematic.mp3" data-start="12.55" data-duration="4.3" data-track-index="6" data-volume="0.25"></audio>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.to({}, { duration: 25 }, 0);
+
+      // Fundidos entre tomas, escondidos bajo el destello de luz
+      tl.fromTo("#shot2", { opacity: 0 }, { opacity: 1, duration: 0.55, ease: "power2.inOut" }, 10.5);
+      tl.fromTo("#shot3", { opacity: 0 }, { opacity: 1, duration: 0.55, ease: "power2.inOut" }, 14.98);
+
+      // Acercamientos lentos de cámara (muy sutiles)
+      tl.fromTo("#cam1", { scale: 1.0 }, { scale: 1.05, duration: 11.1, ease: "power1.inOut" }, 0);
+      tl.fromTo("#cam2", { scale: 1.04 }, { scale: 1.0, duration: 5.1, ease: "power1.inOut" }, 10.5);
+      tl.fromTo("#cam3", { scale: 1.0 }, { scale: 1.06, duration: 10.0, ease: "power1.inOut" }, 14.98);
+
+      // Cierre: fundido a negro en el último segundo
+      tl.fromTo("#fade", { opacity: 0 }, { opacity: 1, duration: 1.1, ease: "power2.in" }, 23.85);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
