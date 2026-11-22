@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      :root {
+        --ground: #000;
+        --flash: #f2f5ff;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--ground);
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--ground);
+      }
+      .shot {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+      .cam {
+        position: absolute;
+        inset: 0;
+      }
+      .cam video,
+      .cam img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      /* El zoom se ancla en el centro del castillo dibujado (441,195 en 1280x720 → 661.5,292.5 en 1920x1080) */
+      #mapzoom {
+        transform-origin: 661.5px 292.5px;
+      }
+      #mapa-nitido {
+        opacity: 0;
+      }
+      #flash {
+        position: absolute;
+        inset: 0;
+        background: var(--flash);
+        opacity: 0;
+        z-index: 50;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="23.2"
+      data-width="1920"
+      data-height="1080"
+      data-fps="60"
+      data-layout-allow-overlap=""
+    >
+      <!-- 1. Tommy en la sala agarra el sobre -->
+      <div id="shot1" class="shot" data-layout-allow-overflow="" style="z-index: 1">
+        <div class="cam">
+          <video id="v1" class="clip" src="assets/01-sala-sobre.mp4" data-start="0" data-duration="5" data-track-index="0" data-has-audio="true" data-volume="1" playsinline></video>
+        </div>
+      </div>
+
+      <!-- 2. POV de Tommy abriendo el sobre -->
+      <div id="shot2" class="shot" data-layout-allow-overflow="" style="z-index: 2">
+        <div class="cam">
+          <video id="v2" class="clip" src="assets/02-pov-sobre.mp4" data-start="5" data-duration="8" data-track-index="1" data-has-audio="true" data-volume="1" playsinline></video>
+        </div>
+      </div>
+
+      <!-- 3. Mapa: último cuadro congelado del POV, luego el mapa nítido alineado y zoom al castillo -->
+      <div id="mapshot" class="shot clip" data-start="13" data-duration="5.2" data-track-index="2" data-track-kind="graphics" data-layout-allow-overflow="" style="z-index: 3">
+        <div id="mapzoom" class="cam">
+          <img id="mapa-congelado" src="assets/pov-ultimo-cuadro.png" alt="" />
+          <img id="mapa-nitido" src="assets/mapa-nitido-alineado.png" alt="" />
+        </div>
+      </div>
+
+      <!-- 4. El castillo real aparece con el trueno -->
+      <div id="shot4" class="shot" data-layout-allow-overflow="" style="z-index: 4">
+        <div id="castlecam" class="cam">
+          <video id="v4" class="clip" src="assets/03-castillo-real.mp4" data-start="18.2" data-duration="5" data-track-index="3" data-has-audio="true" data-volume="0.9" playsinline></video>
+        </div>
+      </div>
+
+      <!-- Destello del relámpago -->
+      <div id="flash"></div>
+
+      <!-- Sonido: zumbido que crece durante el zoom y revienta en el destello, más el golpe del trueno -->
+      <audio id="sfx-zumbido" src="assets/sfx/zumbido-trueno.mp3" data-start="16.35" data-duration="3.9" data-track-index="4" data-volume="0.8"></audio>
+      <audio id="sfx-trueno" src="assets/sfx/trueno-golpe.mp3" data-start="18.15" data-duration="5" data-track-index="5" data-volume="0.7"></audio>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.to({}, { duration: 23.2 }, 0);
+
+      // Momento del corte al castillo real (pico del relámpago)
+      const HIT = 18.2;
+
+      // Mapa congelado: acercamiento muy lento mientras se sostiene (13.0 → 16.6)
+      tl.fromTo("#mapzoom", { scale: 1, x: 0, y: 0 }, { scale: 1.04, duration: 3.6, ease: "sine.inOut" }, 13);
+
+      // Zoom al castillo: termina con el castillo dibujado del mismo tamaño y lugar que el real
+      // (escala 5.4; el centro pasa de 661.5,292.5 a 948,450)
+      tl.to("#mapzoom", { scale: 5.4, x: 286.5, y: 157.5, duration: HIT - 16.6, ease: "power3.in" }, 16.6);
+
+      // Ya en movimiento, pasa del cuadro de 720p al mapa nítido (se nota menos el cambio)
+      tl.to("#mapa-nitido", { opacity: 1, duration: 0.4, ease: "sine.inOut" }, 16.75);
+
+      // Relámpago: sube el destello, golpe al corte, segundo destello y se apaga
+      tl.fromTo("#flash", { opacity: 0 }, { opacity: 0.85, duration: 0.23, ease: "power2.in" }, HIT - 0.25);
+      tl.to("#flash", { opacity: 1, duration: 0.02 }, HIT - 0.02);
+      tl.to("#flash", { opacity: 0.25, duration: 0.12, ease: "power2.out" }, HIT + 0.02);
+      tl.to("#flash", { opacity: 0.9, duration: 0.06, ease: "none" }, HIT + 0.14);
+      tl.to("#flash", { opacity: 0, duration: 0.6, ease: "power2.out" }, HIT + 0.2);
+
+      // Sacudida corta de cámara con el trueno, y el castillo se asienta poco a poco
+      tl.fromTo("#castlecam", { scale: 1.05 }, { scale: 1.0, duration: 5, ease: "power1.out" }, HIT);
+      tl.fromTo(
+        "#castlecam",
+        { x: 0, y: 0 },
+        {
+          keyframes: [
+            { x: -16, y: 9, duration: 0.05 },
+            { x: 13, y: -8, duration: 0.06 },
+            { x: -9, y: 6, duration: 0.07 },
+            { x: 6, y: -4, duration: 0.08 },
+            { x: -3, y: 2, duration: 0.09 },
+            { x: 0, y: 0, duration: 0.1 },
+          ],
+          ease: "none",
+        },
+        HIT,
+      );
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
